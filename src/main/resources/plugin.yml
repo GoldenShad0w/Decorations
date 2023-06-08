@@ -1,0 +1,4 @@
+name: Decorations
+version: '${project.version}'
+main: goldenshadow.decorations.Decorations
+api-version: 1.19
