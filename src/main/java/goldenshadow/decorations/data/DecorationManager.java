@@ -2,6 +2,7 @@ package goldenshadow.decorations.data;
 
 import goldenshadow.decorations.Decorations;
 import goldenshadow.decorations.io.FileManager;
+import goldenshadow.decorations.util.ChatMessageFactory;
 import goldenshadow.decorations.util.GuiManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,6 +14,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Manager class used to manage all decorations
@@ -21,6 +23,7 @@ public class DecorationManager {
 
 
     private static HashMap<String, Decoration> decorations = new HashMap<>();
+    private static final HashMap<UUID, List<Entity>> undoMap = new HashMap<>();
 
     /**
      * Used to set the map of saved decorations
@@ -59,10 +62,10 @@ public class DecorationManager {
      * @param name The name of the decoration that should be placed
      * @param rawLocation The location where it should be placed
      */
-    public static void placeDecoration(String name, Location rawLocation) {
+    public static void placeDecoration(String name, Location rawLocation, @Nullable UUID placerUUID) {
         Location location = rawLocation.clone();
         if (decorations.containsKey(name.toLowerCase())) {
-            decorations.get(name.toLowerCase()).spawn(location);
+            decorations.get(name.toLowerCase()).spawn(location, placerUUID);
         }
     }
 
@@ -136,6 +139,29 @@ public class DecorationManager {
      */
     public static boolean containsKey(String key) {
         return decorations.containsKey(key);
+    }
+
+    /**
+     * Used to undo the last decoration placement
+     * @param player The players whose last placement should be undone
+     */
+    public static void undo(Player player) {
+        if (undoMap.containsKey(player.getUniqueId())) {
+            for (Entity e : undoMap.get(player.getUniqueId())) {
+                e.remove();
+            }
+            undoMap.remove(player.getUniqueId());
+            player.sendMessage(ChatMessageFactory.buildInfoMessage("Removed the last decoration you placed!"));
+        } else player.sendMessage(ChatMessageFactory.buildErrorMessage("Nothing to undo!"));
+    }
+
+    /**
+     * Used to set the undo list of a specific player
+     * @param uuid The uuid of the player
+     * @param list The list containing the entities
+     */
+    public static void setUndo(UUID uuid, List<Entity> list) {
+        undoMap.put(uuid, list);
     }
 
 }

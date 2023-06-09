@@ -5,6 +5,7 @@ import goldenshadow.decorations.data.DecorationManager;
 import goldenshadow.decorations.io.FileManager;
 import goldenshadow.decorations.util.ChatMessageFactory;
 import goldenshadow.decorations.util.GuiManager;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.CommandExecutor;
@@ -35,6 +36,14 @@ public class Command implements CommandExecutor {
             if (args[0].equalsIgnoreCase("reload")) {
                 FileManager.loadFromFiles();
                 sender.sendMessage(ChatMessageFactory.buildInfoMessage("Files reloaded!"));
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("undo")) {
+                if (sender instanceof Player p) {
+                    DecorationManager.undo(p);
+                    return true;
+                }
+                sender.sendMessage(ChatMessageFactory.buildErrorMessage("This command must be run by a player!"));
                 return true;
             }
             if (args[0].equalsIgnoreCase("save")) {
@@ -78,13 +87,14 @@ public class Command implements CommandExecutor {
             if (args[0].equalsIgnoreCase("place")) {
                 if (args.length == 2) {
                     if (DecorationManager.containsKey(args[1])) {
-                        if (sender instanceof Player) {
-                            DecorationManager.placeDecoration(args[1], ((Player) sender).getLocation());
+                        if (sender instanceof Player p) {
+                            DecorationManager.placeDecoration(args[1], p.getLocation(), p.getUniqueId());
                             sender.sendMessage(ChatMessageFactory.buildInfoMessage("Successfully placed decoration: " + args[1] + "!"));
+                            sender.sendMessage(ChatColor.GRAY + "(Run " + ChatColor.DARK_GRAY + "/decorations undo " + ChatColor.GRAY + "to undo)");
                             return true;
                         }
                         if (sender instanceof BlockCommandSender) {
-                            DecorationManager.placeDecoration(args[1], ((BlockCommandSender) sender).getBlock().getLocation());
+                            DecorationManager.placeDecoration(args[1], ((BlockCommandSender) sender).getBlock().getLocation(), null);
                             return true;
                         }
                         sender.sendMessage(ChatMessageFactory.buildErrorMessage("This command must be run by a player or command block!"));

@@ -32,7 +32,7 @@ public class TabComplete implements TabCompleter {
         if (sender.hasPermission("Decorations.admin")){
             List<String> result = new ArrayList<>();
             if (args.length == 1) {
-                arguments = new ArrayList<>(Arrays.asList("save", "place", "delete", "list", "gui", "preview_radius", "edit", "reload"));
+                arguments = new ArrayList<>(Arrays.asList("save", "place", "delete", "list", "gui", "preview_radius", "edit", "reload", "undo"));
                 for (String a : arguments) {
                     if (a.toLowerCase().startsWith(args[0].toLowerCase()))
                         result.add(a);

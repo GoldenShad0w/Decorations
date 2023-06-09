@@ -25,7 +25,7 @@ public class InventoryClick implements Listener {
                         if (i.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(Decorations.getPlugin(), "DecorationName"), PersistentDataType.STRING)) {
                             String key = i.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(Decorations.getPlugin(), "DecorationName"), PersistentDataType.STRING);
                             if (key != null) {
-                                DecorationManager.placeDecoration(key, player.getLocation());
+                                DecorationManager.placeDecoration(key, player.getLocation(), player.getUniqueId());
                                 player.sendMessage(ChatMessageFactory.buildInfoMessage("Successfully placed decoration: " + key + "!"));
                             }
                             return;

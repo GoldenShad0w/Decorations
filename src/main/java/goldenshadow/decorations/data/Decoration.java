@@ -10,7 +10,10 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -59,11 +62,14 @@ public class Decoration {
     /**
      * Used to spawn the decoration
      * @param pivot The root location of where it should spawn
+     * @param uuid The uuid of the player who placed the decoration
      */
-    public void spawn(Location pivot) {
+    public void spawn(Location pivot, @Nullable UUID uuid) {
+        List<Entity> list = new ArrayList<>();
         for (DecorationComponent component : components) {
-            spawnComponent(component, pivot);
+            list.add(spawnComponent(component, pivot));
         }
+        if (uuid != null) DecorationManager.setUndo(uuid, list);
     }
 
     /**
@@ -128,9 +134,10 @@ public class Decoration {
      * Internal method used to spawn a component at its correct relative location
      * @param component The component that should be placed
      * @param pivot The root location to which the component should be placed relatively
+     * @return The entity that was placed as the component
      */
     @SuppressWarnings("deprecation")
-    private static void spawnComponent(DecorationComponent component, Location pivot) {
+    private static Entity spawnComponent(DecorationComponent component, Location pivot) {
 
         Location spawnLoc = pivot.clone().add(component.getOffsetVector());
         spawnLoc.setDirection(component.getDirection());
@@ -154,7 +161,7 @@ public class Decoration {
             itemFrame.setCustomNameVisible(data.isCustomNameVisible);
             itemFrame.setGlowing(data.isGlowing);
             itemFrame.setRotation(data.yaw, data.pitch);
-            return;
+            return itemFrame;
         }
         if (data.entityType == EntityType.ARMOR_STAND) {
             ArmorStand armorStand = (ArmorStand) pivot.getWorld().spawnEntity(spawnLoc, data.entityType, false);
@@ -188,7 +195,7 @@ public class Decoration {
             armorStand.getEquipment().setItemInOffHand(Serializer.decodeItem(data.armorStandEquipment[5]),true);
             armorStand.setGlowing(data.isGlowing);
             armorStand.setRotation(data.yaw, data.pitch);
-            return;
+            return armorStand;
             
         }
         Display display = (Display) pivot.getWorld().spawnEntity(spawnLoc, data.entityType, false);
@@ -217,7 +224,7 @@ public class Decoration {
             if (data.block != null) {
                 blockDisplay.setBlock(Bukkit.createBlockData(data.block));
             }
-            return;
+            return blockDisplay;
         }
         if (display instanceof ItemDisplay itemDisplay) {
             if (data.itemDisplayTransform != null) {
@@ -226,7 +233,7 @@ public class Decoration {
             if (data.itemDisplayItem != null) {
                 itemDisplay.setItemStack(Serializer.decodeItem(data.itemDisplayItem));
             }
-            return;
+            return itemDisplay;
         }
 
         if (display instanceof TextDisplay textDisplay) {
@@ -240,7 +247,9 @@ public class Decoration {
             textDisplay.setShadowed(data.isShadowed);
             textDisplay.setTextOpacity(data.textOpacity);
             textDisplay.setBackgroundColor(data.backgroundColor);
+            return textDisplay;
         }
+        return display;
     }
 
 
