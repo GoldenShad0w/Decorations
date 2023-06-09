@@ -1,4 +1,13 @@
 name: Decorations
 version: '${project.version}'
 main: goldenshadow.decorations.Decorations
+author: _GoldenShadow
 api-version: 1.19
+description: Decorations lets you easily save and load your armor stand/display entity creations!
+commands:
+  decoration:
+    permission: Decorations.admin
+    aliases:
+      - deco
+      - d
+      - decorations

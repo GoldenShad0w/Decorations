@@ -1,37 +1,55 @@
-package goldenshadow.aurum.entities;
+package goldenshadow.decorations.io;
 
 import com.google.gson.*;
-import goldenshadow.aurum.other.RespawnLocation;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import com.google.gson.reflect.TypeToken;
+import goldenshadow.decorations.data.Decoration;
+import goldenshadow.decorations.data.DecorationComponent;
+
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
-public class RespawnLocationAdapter implements JsonSerializer<RespawnLocation>, JsonDeserializer<RespawnLocation> {
+public class DecorationTypeAdapter implements JsonSerializer<Decoration>, JsonDeserializer<Decoration> {
 
     @Override
-    public RespawnLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public Decoration deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         JsonObject jsonObject = json.getAsJsonObject();
-        double x = jsonObject.get("x").getAsDouble();
-        double y = jsonObject.get("y").getAsDouble();
-        double z = jsonObject.get("z").getAsDouble();
-        String worldName = jsonObject.get("worldName").getAsString();
-        int range = jsonObject.get("range").getAsInt();
-        World world = Bukkit.getWorld(worldName);
-        if (world == null) {
-            throw new JsonParseException("Invalid world name: " + worldName);
+
+        String name = jsonObject.get("name").getAsString();
+        String description = jsonObject.get("description").getAsString();
+        String author = jsonObject.get("author").getAsString();
+        String displayItem = jsonObject.get("displayItem").getAsString();
+
+        Type componentType = new TypeToken<DecorationComponent>() {}.getType();
+        DecorationComponentTypeAdapter adapter = new DecorationComponentTypeAdapter();
+        List<DecorationComponent> components = new ArrayList<>();
+
+        JsonArray componentArray = jsonObject.getAsJsonArray("components");
+
+        for (JsonElement e : componentArray) {
+            DecorationComponent c = adapter.deserialize(e, componentType, context);
+            components.add(c);
         }
-        return new RespawnLocation(world, x, y, z, range);
+
+        return new Decoration(name, description, components, author, displayItem);
     }
 
     @Override
-    public JsonElement serialize(RespawnLocation spawnLocation, Type typeOfSrc, JsonSerializationContext context) {
+    public JsonElement serialize(Decoration src, Type typeOfSrc, JsonSerializationContext context) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("x", spawnLocation.getLocation().getX());
-        jsonObject.addProperty("y", spawnLocation.getLocation().getY());
-        jsonObject.addProperty("z", spawnLocation.getLocation().getZ());
-        jsonObject.addProperty("worldName", spawnLocation.getLocation().getWorld().getName());
-        jsonObject.addProperty("range", spawnLocation.getRange());
+        jsonObject.addProperty("name", src.getName());
+        if (src.getDescription() != null) {
+            jsonObject.addProperty("description", src.getDescription());
+        }
+        jsonObject.addProperty("author", src.getAuthor());
+        jsonObject.addProperty("displayItem", src.getDisplayItemString());
+        DecorationComponentTypeAdapter adapter = new DecorationComponentTypeAdapter();
+        JsonArray array = new JsonArray();
+        for (DecorationComponent c : src.getComponents()) {
+            array.add(adapter.serialize(c, typeOfSrc, context));
+        }
+        jsonObject.add("components", array);
         return jsonObject;
     }
 

@@ -1,11 +1,13 @@
-package goldenshadow.decorations;
+package goldenshadow.decorations.io;
 
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import goldenshadow.decorations.Decorations;
 import goldenshadow.decorations.data.Decoration;
+import goldenshadow.decorations.data.DecorationComponent;
 import goldenshadow.decorations.data.DecorationManager;
-import goldenshadow.decorations.data.EntityData;
+import goldenshadow.decorations.util.GuiManager;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -17,9 +19,12 @@ import java.util.List;
 public class FileManager {
 
     public static void saveToFiles() {
-        File decorationsFolder = new File(Decorations.getPlugin().getDataFolder(), "decorations");
+        File decorationsFolder = new File(Decorations.getPlugin().getDataFolder(), "files");
         decorationsFolder.getParentFile().mkdir();
         Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Decoration.class, new DecorationTypeAdapter())
+                .registerTypeAdapter(DecorationComponent.class, new DecorationTypeAdapter())
+                .registerTypeAdapter(EntityDataTypeAdapter.class, new EntityDataTypeAdapter())
                 .create();
 
         File[] files = decorationsFolder.listFiles();
@@ -45,7 +50,7 @@ public class FileManager {
     }
 
     public static void loadFromFiles() {
-        File decorationsFolder = new File(Decorations.getPlugin().getDataFolder(), "decorations");
+        File decorationsFolder = new File(Decorations.getPlugin().getDataFolder(), "files");
 
         List<File> fileList = new ArrayList<>();
 
@@ -55,23 +60,36 @@ public class FileManager {
             if (decorationFiles != null) {
                 fileList = Arrays.asList(decorationFiles);
             }
-
             Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(Decoration.class, new DecorationTypeAdapter())
+                    .registerTypeAdapter(DecorationComponent.class, new DecorationTypeAdapter())
+                    .registerTypeAdapter(EntityDataTypeAdapter.class, new EntityDataTypeAdapter())
                     .create();
 
             HashMap<String, Decoration> map = new HashMap<>();
 
-            for (File file : fileList) {
-                try {
-                    Reader reader = new FileReader(file);
-                    map.put(file.getName(), gson.fromJson(reader, Decoration.class));
+            
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+            if (!fileList.isEmpty()) {
+                for (File file : fileList) {
+                    if (file.getName().contains(".json")) {
+                        try {
+                            Reader reader = new FileReader(file);
+                            Type type = new TypeToken<Decoration>() {
+                            }.getType();
+
+                            Decoration decoration = gson.fromJson(reader, type);
+
+                            map.put(decoration.getName(), decoration);
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-
             }
             DecorationManager.setHashMap(map);
+            GuiManager.updateInventories();
         }
     }
 }
