@@ -16,7 +16,9 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * A class responsible for managing the guis
+ */
 public class GuiManager {
 
     private static Inventory[] inventories;
